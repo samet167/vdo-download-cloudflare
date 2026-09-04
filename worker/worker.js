@@ -102,11 +102,6 @@ export default {
         return jsonResponse({ error: "Missing 'url' parameter" }, 400);
       }
 
-      // If target URL is an HTML webpage, redirect directly
-      if (targetUrl.includes("youtube.com/watch") || targetUrl.includes("youtu.be/")) {
-        return Response.redirect(`https://10downloader.com/download?v=${encodeURIComponent(targetUrl)}`, 302);
-      }
-
       try {
         const upstreamResponse = await fetch(targetUrl, {
           headers: {
@@ -116,9 +111,9 @@ export default {
         });
 
         const contentType = upstreamResponse.headers.get("content-type") || "";
-        // If upstream is an HTML webpage or failed, redirect user directly
+        // If upstream is an HTML webpage or failed, do NOT redirect to ad websites
         if (!upstreamResponse.ok || contentType.includes("text/html")) {
-          return Response.redirect(targetUrl, 302);
+          return jsonResponse({ error: "Direct stream not available for this link.", success: false }, 422);
         }
 
         const responseHeaders = new Headers(upstreamResponse.headers);
@@ -132,8 +127,7 @@ export default {
           headers: responseHeaders
         });
       } catch (err) {
-        // Fallback: Redirect directly
-        return Response.redirect(targetUrl, 302);
+        return jsonResponse({ error: "Download stream failed: " + err.message, success: false }, 502);
       }
     }
 
