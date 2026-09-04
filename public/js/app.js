@@ -133,7 +133,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const uploaderEl = document.getElementById("res-uploader");
     const durationEl = document.getElementById("res-duration");
     const formatsContainer = document.getElementById("res-formats");
-    const downloadBtn = document.getElementById("res-download-btn");
+    const embedEl = document.getElementById("res-embed-downloader");
 
     thumbImg.src = data.thumbnail || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400";
     thumbImg.alt = data.title;
@@ -169,13 +169,34 @@ document.addEventListener("DOMContentLoaded", () => {
         pill.classList.add("active");
         selectedFormat = fmt;
         updateDownloadButton(data.title);
+        updateEmbedPlayer(data);
       });
 
       formatsContainer.appendChild(pill);
     });
 
     updateDownloadButton(data.title);
+    updateEmbedPlayer(data);
     resultSection.style.display = "block";
+  }
+
+  function updateEmbedPlayer(data) {
+    const embedEl = document.getElementById("res-embed-downloader");
+    if (!embedEl) return;
+    
+    if (data.platform === "youtube" && data.video_id) {
+      const fType = (selectedFormat && selectedFormat.ext === "mp3") ? "mp3" : "mp4";
+      embedEl.innerHTML = `
+        <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 12px; text-align: center;">
+          <p style="font-size: 0.85rem; color: #a1a1aa; margin-bottom: 8px;">⚡ 1-Click Direct In-Page Downloader (${fType.toUpperCase()}):</p>
+          <iframe src="https://p.savenow.to/api/button/?url=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3D${data.video_id}&f=${fType}" width="100%" height="60" scrolling="no" style="border:none; border-radius:8px; overflow:hidden;"></iframe>
+        </div>
+      `;
+      embedEl.style.display = "block";
+    } else {
+      embedEl.style.display = "none";
+      embedEl.innerHTML = "";
+    }
   }
 
   function updateDownloadButton(title) {
