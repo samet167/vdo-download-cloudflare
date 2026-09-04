@@ -1,0 +1,7 @@
+/*
+  Access-Control-Allow-Origin: *
+  Access-Control-Allow-Methods: GET, POST, OPTIONS, HEAD
+  Access-Control-Allow-Headers: Content-Type, Authorization, Accept, Origin
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: SAMEORIGIN
+  Referrer-Policy: strict-origin-when-cross-origin
