@@ -182,43 +182,38 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function updateEmbedPlayer(data) {
     const embedEl = document.getElementById("res-embed-downloader");
+    const downloadBtn = document.getElementById("res-download-btn");
     if (!embedEl) return;
     
     if (data.platform === "youtube" && data.video_id) {
       const fType = (selectedFormat && selectedFormat.ext === "mp3") ? "mp3" : "mp4";
       embedEl.innerHTML = `
-        <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 12px; text-align: center;">
-          <p style="font-size: 0.85rem; color: #a1a1aa; margin-bottom: 8px;">⚡ 1-Click Direct In-Page Downloader (${fType.toUpperCase()}):</p>
+        <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 14px; text-align: center; margin-top: 10px;">
+          <p style="font-size: 0.88rem; font-weight: 600; color: #cbd5e1; margin-bottom: 10px;">⚡ Click Below to Download ${fType.toUpperCase()} Directly:</p>
           <iframe src="https://p.savenow.to/api/button/?url=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3D${data.video_id}&f=${fType}" width="100%" height="60" scrolling="no" style="border:none; border-radius:8px; overflow:hidden;"></iframe>
         </div>
       `;
       embedEl.style.display = "block";
+      if (downloadBtn) downloadBtn.style.display = "none";
     } else {
       embedEl.style.display = "none";
       embedEl.innerHTML = "";
+      if (downloadBtn) downloadBtn.style.display = "inline-flex";
     }
   }
 
   function updateDownloadButton(title) {
     const downloadBtn = document.getElementById("res-download-btn");
-    if (!selectedFormat) return;
+    if (!selectedFormat || !downloadBtn) return;
 
     const safeTitle = (title || "video").replace(/[^\w\s-]/gi, "").trim().replace(/\s+/g, "_");
     const filename = `${safeTitle}.${selectedFormat.ext || "mp4"}`;
 
-    if (selectedFormat.isDirectStream !== false && selectedFormat.url.startsWith("http")) {
-      // Direct CDN video stream (TikTok / Facebook) -> Route through attachment proxy
-      const downloadUrl = `${window.CONFIG.API_BASE}/api/download?url=${encodeURIComponent(selectedFormat.url)}&filename=${encodeURIComponent(filename)}`;
-      downloadBtn.href = downloadUrl;
-      downloadBtn.setAttribute("download", filename);
-    } else {
-      // Direct converter URL (YouTube) -> Direct click
-      downloadBtn.href = selectedFormat.url;
-      downloadBtn.removeAttribute("download");
-    }
-
-    downloadBtn.target = "_blank";
-    downloadBtn.rel = "noopener noreferrer";
+    // Direct CDN video stream (TikTok / Facebook) -> Route through attachment proxy
+    const downloadUrl = `${window.CONFIG.API_BASE}/api/download?url=${encodeURIComponent(selectedFormat.url)}&filename=${encodeURIComponent(filename)}`;
+    downloadBtn.href = downloadUrl;
+    downloadBtn.setAttribute("download", filename);
+    downloadBtn.target = "_self";
     downloadBtn.innerHTML = `
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
       <span>Download ${selectedFormat.quality || selectedFormat.resolution}</span>

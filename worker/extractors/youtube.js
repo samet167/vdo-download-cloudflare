@@ -32,37 +32,25 @@ export async function extractYouTube(url) {
   const thumbnail = `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
   const formats = [];
 
-  // 2. High-speed, Verified SaveFrom & SSYouTube Converters (100% working in all regions)
-  const fullYtUrl = `https://www.youtube.com/watch?v=${videoId}`;
-  
+  // Formats for direct in-page processing
   formats.push({
-    format_id: "savefrom_hd",
-    quality: "SaveFrom HD MP4 (1080p / 720p)",
-    resolution: "HD 1080p/720p",
+    format_id: "mp4_hd",
+    quality: "HD Video (MP4)",
+    resolution: "720p HD",
     ext: "mp4",
-    url: `https://en.savefrom.net/1-youtube-video-downloader-385/?url=${encodeURIComponent(fullYtUrl)}`,
+    url: `https://www.youtube.com/watch?v=${videoId}`,
     isDirectStream: false,
-    note: "Instant HD Video"
+    note: "HD MP4 Video"
   });
 
   formats.push({
-    format_id: "ss_video",
-    quality: "SSYouTube Fast MP4",
-    resolution: "720p",
-    ext: "mp4",
-    url: `https://ssyoutube.com/watch?v=${videoId}`,
-    isDirectStream: false,
-    note: "Fast Mirror"
-  });
-
-  formats.push({
-    format_id: "yt5s_mp3",
-    quality: "YT5s MP3 Audio / MP4",
-    resolution: "Audio & Video",
+    format_id: "mp3_audio",
+    quality: "Audio MP3",
+    resolution: "Audio",
     ext: "mp3",
-    url: `https://yt5s.biz/en/youtube-to-mp4/?q=${encodeURIComponent(fullYtUrl)}`,
+    url: `https://www.youtube.com/watch?v=${videoId}`,
     isDirectStream: false,
-    note: "MP3 320kbps & Video"
+    note: "High Quality MP3"
   });
 
   return {
