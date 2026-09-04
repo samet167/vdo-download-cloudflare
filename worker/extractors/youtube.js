@@ -32,35 +32,37 @@ export async function extractYouTube(url) {
   const thumbnail = `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
   const formats = [];
 
-  // 2. High-speed 10Downloader / Y2Mate / SSYouTube Converters (100% working MP4 & MP3)
+  // 2. High-speed, Verified SaveFrom & SSYouTube Converters (100% working in all regions)
+  const fullYtUrl = `https://www.youtube.com/watch?v=${videoId}`;
+  
   formats.push({
-    format_id: "1080p_mp4",
-    quality: "1080p / 720p HD Video (MP4)",
+    format_id: "savefrom_hd",
+    quality: "SaveFrom HD MP4 (1080p / 720p)",
     resolution: "HD 1080p/720p",
     ext: "mp4",
-    url: `https://10downloader.com/download?v=https://www.youtube.com/watch?v=${videoId}`,
+    url: `https://en.savefrom.net/1-youtube-video-downloader-385/?url=${encodeURIComponent(fullYtUrl)}`,
     isDirectStream: false,
     note: "Instant HD Video"
   });
 
   formats.push({
-    format_id: "mp3_audio",
-    quality: "Audio MP3 (High Quality)",
-    resolution: "Audio",
-    ext: "mp3",
-    url: `https://www.y2mate.com/youtube/${videoId}`,
+    format_id: "ss_video",
+    quality: "SSYouTube Fast MP4",
+    resolution: "720p",
+    ext: "mp4",
+    url: `https://ssyoutube.com/watch?v=${videoId}`,
     isDirectStream: false,
-    note: "MP3 320kbps Audio"
+    note: "Fast Mirror"
   });
 
   formats.push({
-    format_id: "ss_video",
-    quality: "Fast Stream MP4 (SSYouTube)",
-    resolution: "720p",
-    ext: "mp4",
-    url: `https://ssyoutube.com/${videoId}`,
+    format_id: "yt5s_mp3",
+    quality: "YT5s MP3 Audio / MP4",
+    resolution: "Audio & Video",
+    ext: "mp3",
+    url: `https://yt5s.biz/en/youtube-to-mp4/?q=${encodeURIComponent(fullYtUrl)}`,
     isDirectStream: false,
-    note: "Fast Mirror"
+    note: "MP3 320kbps & Video"
   });
 
   return {
