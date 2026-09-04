@@ -133,7 +133,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const uploaderEl = document.getElementById("res-uploader");
     const durationEl = document.getElementById("res-duration");
     const formatsContainer = document.getElementById("res-formats");
-    const embedEl = document.getElementById("res-embed-downloader");
+    const downloadBtn = document.getElementById("res-download-btn");
 
     thumbImg.src = data.thumbnail || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400";
     thumbImg.alt = data.title;
@@ -169,37 +169,14 @@ document.addEventListener("DOMContentLoaded", () => {
         pill.classList.add("active");
         selectedFormat = fmt;
         updateDownloadButton(data.title);
-        updateEmbedPlayer(data);
       });
 
       formatsContainer.appendChild(pill);
     });
 
+    if (downloadBtn) downloadBtn.style.display = "inline-flex";
     updateDownloadButton(data.title);
-    updateEmbedPlayer(data);
     resultSection.style.display = "block";
-  }
-
-  function updateEmbedPlayer(data) {
-    const embedEl = document.getElementById("res-embed-downloader");
-    const downloadBtn = document.getElementById("res-download-btn");
-    if (!embedEl) return;
-    
-    if (data.platform === "youtube" && data.video_id) {
-      const fType = (selectedFormat && selectedFormat.ext === "mp3") ? "mp3" : "mp4";
-      embedEl.innerHTML = `
-        <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 14px; text-align: center; margin-top: 10px;">
-          <p style="font-size: 0.88rem; font-weight: 600; color: #cbd5e1; margin-bottom: 10px;">⚡ Click Below to Download ${fType.toUpperCase()} Directly:</p>
-          <iframe src="https://p.savenow.to/api/button/?url=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3D${data.video_id}&f=${fType}" width="100%" height="60" scrolling="no" style="border:none; border-radius:8px; overflow:hidden;"></iframe>
-        </div>
-      `;
-      embedEl.style.display = "block";
-      if (downloadBtn) downloadBtn.style.display = "none";
-    } else {
-      embedEl.style.display = "none";
-      embedEl.innerHTML = "";
-      if (downloadBtn) downloadBtn.style.display = "inline-flex";
-    }
   }
 
   function updateDownloadButton(title) {
@@ -209,7 +186,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const safeTitle = (title || "video").replace(/[^\w\s-]/gi, "").trim().replace(/\s+/g, "_");
     const filename = `${safeTitle}.${selectedFormat.ext || "mp4"}`;
 
-    // Direct CDN video stream (TikTok / Facebook) -> Route through attachment proxy
+    // Direct CDN video stream -> Route through attachment proxy for 100% in-browser direct saving
     const downloadUrl = `${window.CONFIG.API_BASE}/api/download?url=${encodeURIComponent(selectedFormat.url)}&filename=${encodeURIComponent(filename)}`;
     downloadBtn.href = downloadUrl;
     downloadBtn.setAttribute("download", filename);
