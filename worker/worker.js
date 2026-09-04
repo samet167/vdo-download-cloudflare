@@ -102,6 +102,11 @@ export default {
         return jsonResponse({ error: "Missing 'url' parameter" }, 400);
       }
 
+      // If target URL is an HTML webpage, redirect directly
+      if (targetUrl.includes("youtube.com/watch") || targetUrl.includes("youtu.be/")) {
+        return Response.redirect(`https://10downloader.com/download?v=${encodeURIComponent(targetUrl)}`, 302);
+      }
+
       try {
         const upstreamResponse = await fetch(targetUrl, {
           headers: {
@@ -110,8 +115,9 @@ export default {
           }
         });
 
-        if (!upstreamResponse.ok) {
-          // If upstream proxy fails, redirect user directly to download stream
+        const contentType = upstreamResponse.headers.get("content-type") || "";
+        // If upstream is an HTML webpage or failed, redirect user directly
+        if (!upstreamResponse.ok || contentType.includes("text/html")) {
           return Response.redirect(targetUrl, 302);
         }
 

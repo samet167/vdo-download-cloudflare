@@ -19,5 +19,8 @@
     "facebook"
   ],
   "author": "samet",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "@distube/ytdl-core": "^4.16.12"
+  }
 }
