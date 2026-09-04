@@ -183,21 +183,123 @@ document.addEventListener("DOMContentLoaded", () => {
     const downloadBtn = document.getElementById("res-download-btn");
     if (!selectedFormat || !downloadBtn) return;
 
-    const safeTitle = (title || "video").replace(/[^\w\s-]/gi, "").trim().replace(/\s+/g, "_");
-    const filename = `${safeTitle}.${selectedFormat.ext || "mp4"}`;
-
-    // Direct CDN video stream -> Route through attachment proxy for 100% in-browser direct saving
-    const downloadUrl = `${window.CONFIG.API_BASE}/api/download?url=${encodeURIComponent(selectedFormat.url)}&filename=${encodeURIComponent(filename)}`;
-    downloadBtn.href = downloadUrl;
-    downloadBtn.setAttribute("download", filename);
-    downloadBtn.target = "_self";
+    downloadBtn.removeAttribute("href");
+    downloadBtn.style.cursor = "pointer";
     downloadBtn.innerHTML = `
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
       <span>Download ${selectedFormat.quality || selectedFormat.resolution}</span>
     `;
   }
 
-  // ── 5. Form Submit Listener ──────────────────────────────────────────────
+  function triggerDirectBrowserDownload(url, filename) {
+    const a = document.createElement("a");
+    a.href = url;
+    a.setAttribute("download", filename);
+    a.target = "_self";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }
+
+  // ── 5. Download Button Click Listener (100% In-Browser, Zero Ads, Zero Redirects) ──
+  const downloadBtn = document.getElementById("res-download-btn");
+  if (downloadBtn) {
+    downloadBtn.addEventListener("click", async (e) => {
+      e.preventDefault();
+      if (!selectedFormat || !currentVideoData) return;
+
+      const safeTitle = (currentVideoData.title || "video").replace(/[^\w\s-]/gi, "").trim().replace(/\s+/g, "_") || "video";
+      const filename = `${safeTitle}.${selectedFormat.ext || "mp4"}`;
+
+      // 1. Direct CDN stream available (TikTok / Facebook)
+      if (selectedFormat.isDirectStream !== false && selectedFormat.url.startsWith("http")) {
+        const downloadUrl = `${window.CONFIG.API_BASE}/api/download?url=${encodeURIComponent(selectedFormat.url)}&filename=${encodeURIComponent(filename)}`;
+        triggerDirectBrowserDownload(downloadUrl, filename);
+        return;
+      }
+
+      // 2. YouTube: Headless Background Resolution (Zero Ads, Zero Redirects)
+      const originalHtml = downloadBtn.innerHTML;
+      downloadBtn.innerHTML = `
+        <span class="spinner"></span>
+        <span>Preparing direct download...</span>
+      `;
+      downloadBtn.style.pointerEvents = "none";
+      downloadBtn.style.opacity = "0.85";
+
+      try {
+        const fParam = selectedFormat.ext === "mp3" ? "mp3" : "720";
+        const targetUrl = `https://www.youtube.com/watch?v=${currentVideoData.video_id}`;
+        
+        const initRes = await fetch(
+          `https://p.savenow.to/api/v2/download?url=${encodeURIComponent(targetUrl)}&format=${fParam}&button=1`,
+          { headers: { "Accept": "application/json" } }
+        );
+
+        if (!initRes.ok) {
+          throw new Error("Unable to initialize download stream. Please try again.");
+        }
+
+        const initData = await initRes.json();
+        if (!initData || !initData.id) {
+          throw new Error("Download stream server busy. Please retry.");
+        }
+
+        const progressUrl = initData.progress_url || `https://p.savenow.to/api/progress?id=${initData.id}`;
+        let directDownloadUrl = null;
+
+        // Poll in background for up to 14 seconds without leaving the page
+        for (let i = 0; i < 14; i++) {
+          await new Promise(r => setTimeout(r, 1000));
+          const percent = Math.min(95, (i + 1) * 7);
+          downloadBtn.innerHTML = `
+            <span class="spinner"></span>
+            <span>Converting ${selectedFormat.quality || "file"} (${percent}%)...</span>
+          `;
+          
+          try {
+            const progRes = await fetch(progressUrl);
+            if (progRes.ok) {
+              const progData = await progRes.json();
+              if (progData.download_url && progData.success === 1) {
+                directDownloadUrl = progData.download_url;
+                break;
+              }
+            }
+          } catch (pollErr) {
+            // continue polling
+          }
+        }
+
+        if (!directDownloadUrl) {
+          throw new Error("Stream conversion timed out. Please try again.");
+        }
+
+        // Trigger native browser download directly onto the user's computer
+        triggerDirectBrowserDownload(directDownloadUrl, filename);
+
+        downloadBtn.innerHTML = `
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+          <span>Download Started!</span>
+        `;
+
+        setTimeout(() => {
+          downloadBtn.innerHTML = originalHtml;
+          downloadBtn.style.pointerEvents = "auto";
+          downloadBtn.style.opacity = "1";
+        }, 4000);
+
+      } catch (err) {
+        console.error("Download resolution error:", err);
+        showError(err.message || "Failed to download video. Please try again.");
+        downloadBtn.innerHTML = originalHtml;
+        downloadBtn.style.pointerEvents = "auto";
+        downloadBtn.style.opacity = "1";
+      }
+    });
+  }
+
+  // ── 6. Form Submit Listener ──────────────────────────────────────────────
   fetchBtn.addEventListener("click", (e) => {
     e.preventDefault();
     fetchVideoInfo();
