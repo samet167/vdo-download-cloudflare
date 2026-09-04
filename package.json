@@ -1,0 +1,23 @@
+{
+  "name": "cloudflare-video-downloader",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "100% Serverless Video Downloader on Cloudflare Workers & Pages",
+  "main": "worker/worker.js",
+  "scripts": {
+    "dev:worker": "wrangler dev worker/worker.js",
+    "dev:pages": "npx serve public -p 8080",
+    "deploy:worker": "cd worker && wrangler deploy",
+    "deploy:pages": "npx wrangler pages deploy public --project-name videodown"
+  },
+  "keywords": [
+    "cloudflare-worker",
+    "cloudflare-pages",
+    "video-downloader",
+    "youtube",
+    "tiktok",
+    "facebook"
+  ],
+  "author": "samet",
+  "license": "MIT"
+}
